@@ -1,0 +1,50 @@
+# WorkLingo auf dem Server. Es gibt keinen öffentlichen Port: Der Caddy des Geisterstunde-Stacks
+# nimmt HTTPS an und reicht die Anfragen an "worklingo:8080" weiter (siehe deploy/Caddyfile.worklingo).
+# Start:  docker compose up -d --build
+services:
+  worklingo:
+    build: .
+    image: worklingo:latest
+    container_name: worklingo
+    restart: unless-stopped
+
+    # Härtung: kein Root, keine Rechte, unveränderliches Dateisystem
+    user: "101:101"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=16m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+
+    # Stabilität: harte Grenzen, damit der Container den Server nie ausbremsen kann
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.25
+    pids_limit: 64
+    ulimits:
+      nofile: { soft: 1024, hard: 1024 }
+
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+    # Logs begrenzen, damit die Platte nicht vollläuft
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+    # Gleiches Docker-Netz wie der Caddy; Alias "worklingo" ist der Name für den Proxy.
+    networks:
+      proxy:
+        aliases: [worklingo]
+
+networks:
+  proxy:
+    name: ${PROXY_NETWORK:-geisterstunde_default}
+    external: true
