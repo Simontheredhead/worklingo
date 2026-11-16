@@ -1,7 +1,7 @@
-# Diesen Block in die Caddyfile des Geisterstunde-Stacks (/opt/geisterstunde/Caddyfile.vps) einfügen
-# und "lingo.beispiel.de" durch die echte Subdomain ersetzen (DNS-A-Eintrag auf die Server-IP nötig).
-# Caddy holt das HTTPS-Zertifikat selbst.
-lingo.beispiel.de {
+# Diesen Block an die Caddyfile des Geisterstunde-Stacks (/opt/geisterstunde/Caddyfile.vps) anhängen.
+# Der Hostname löst über sslip.io ohne eigene Domain auf die Server-IP auf; Caddy holt das Zertifikat selbst.
+# Mit eigener Domain: Hostnamen ersetzen und einen DNS-A-Eintrag auf die Server-IP setzen.
+lingo.217-154-235-177.sslip.io {
 	encode zstd gzip
 	header Strict-Transport-Security "max-age=31536000"
 	reverse_proxy worklingo:8080 {

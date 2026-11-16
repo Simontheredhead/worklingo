@@ -49,7 +49,8 @@ und die Übersetzungs-API von MyMemory.
 **Stabil:** `restart: unless-stopped`, Healthcheck (`/healthz`), begrenzte Logs (3 × 5 MB).
 
 Es gibt bewusst keinen öffentlichen Port. HTTPS übernimmt der Caddy des Geisterstunde-Stacks; dafür ist
-`deploy/Caddyfile.worklingo` als Vorlage da (Subdomain eintragen, DNS-A-Eintrag auf die Server-IP setzen).
+`deploy/Caddyfile.worklingo` als Vorlage da. Ohne eigene Domain dient `lingo.<IP-mit-Bindestrichen>.sslip.io` als Adresse;
+mit eigener Domain den Hostnamen ersetzen und einen DNS-A-Eintrag auf die Server-IP setzen.
 
 ```bash
 docker compose up -d --build     # Container bauen und starten
