@@ -6,6 +6,7 @@ Sprachlern-App im Duolingo-Stil (Deutsch als Ausgangssprache), als reine statisc
 - **Business-Englisch** (B1–C1): Meetings, E-Mails, Telefonieren, Verhandlungen, Finanzen & Recht u. v. m.
 - **Cloud-Englisch** (B2–C1): Stand-ups, Incidents, CI/CD, Security, Kundenkommunikation, Doku lesen
 - **Spanisch** (A1–A2): Alltag, Essen, Reisen, Arbeit, Vergangenheit und Zukunft
+- **Französisch** (A1, für Marokko): Begrüßen und Zahlen, Hotel, Handy und Zoll, Markt und Restaurant, Taxi, Bahn und Notfall (12 Lektionen, mit echten Piper-Stimmen)
 - **Darija** (A1, Marokko): Begrüßen und Vorstellen, Zahlen und Dirham, Souk und Feilschen, Café und Restaurant, Taxi, Unterkunft und Notfall (12 Lektionen, Umschrift plus arabische Schrift)
 
 Übungstypen: Multiple Choice, Lückentext, Satzbau, Paare, Tippen, Fehlerkorrektur, Hörverstehen, Aussprache (Mikrofon).
@@ -30,6 +31,7 @@ Die App ist als PWA installierbar (nur über HTTPS bzw. localhost).
 | `content.js`, `content-more.js` | Kurs Business-Englisch |
 | `content-cloud.js` | Kurs Cloud-Englisch |
 | `content-es.js` | Kurs Spanisch |
+| `content-fr.js` | Kurs Französisch für Marokko |
 | `content-ma.js` | Kurs Darija (marokkanisches Arabisch) |
 | `sw.js`, `sw-register.js`, `manifest.webmanifest`, `icon*` | Offline-Cache und Installation (PWA) |
 | `tts.js`, `voice/` | Sprachausgabe mit Piper-Stimmen (siehe unten) |
@@ -66,12 +68,13 @@ Das Mikrofon und die Installation als App funktionieren nur über HTTPS.
 
 ## Sprachausgabe (Piper)
 Vorgelesen wird mit [Piper](https://github.com/OHF-Voice/piper1-gpl) (offline, CPU) statt mit der Stimme des Browsers, damit es auf jedem Gerät gleich klingt.
-Der Browser fragt per `POST /tts` (`{"lang":"en"|"es","voice":0|1,"text":"…"}`) und bekommt WAV-Audio zurück.
+Der Browser fragt per `POST /tts` (`{"lang":"en"|"es"|"fr","voice":0|1,"text":"…"}`) und bekommt WAV-Audio zurück.
 
 | Sprache | Stimme 0 (weiblich) | Stimme 1 (männlich) |
 | --- | --- | --- |
 | Englisch (US) | `en_US-lessac-high` | `en_US-ryan-high` |
 | Spanisch (Spanien) | `es_ES-sharvard-medium`, Sprecherin | `es_ES-davefx-medium` |
+| Französisch (Frankreich) | `fr_FR-siwis-medium` | `fr_FR-tom-medium` (44,1 kHz) |
 
 Beide englischen Stimmen laufen in der höchsten Piper-Qualitätsstufe (`high`). Für Spanisch aus Spanien gibt es nur `medium`; die `high`-Stimmen
 (`es_MX-claude-high`, `es_AR-daniela-high`) sind lateinamerikanisch und haben nur einen Sprecher. Alle Modelle geben 22.050 Hz aus.

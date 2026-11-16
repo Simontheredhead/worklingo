@@ -11,7 +11,7 @@ COPY docker/security-headers.conf /etc/nginx/security-headers.conf
 
 # Nur die App-Dateien ins Image (kein Git, keine Docker-Dateien).
 COPY index.html app.js translator.js tts.js sw.js sw-register.js \
-     content.js content-more.js content-cloud.js content-es.js content-ma.js \
+     content.js content-more.js content-cloud.js content-es.js content-fr.js content-ma.js \
      manifest.webmanifest icon.svg icon-192.png icon-512.png \
      /usr/share/nginx/html/
 

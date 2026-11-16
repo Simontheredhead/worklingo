@@ -1,7 +1,7 @@
 {
-  "name": "WorkLingo – Englisch, Spanisch & Darija",
+  "name": "WorkLingo – Englisch, Spanisch, Französisch & Darija",
   "short_name": "WorkLingo",
-  "description": "Englisch für den Job, Spanisch und Darija für Marokko lernen",
+  "description": "Englisch für den Job, Spanisch, Französisch und Darija für Marokko lernen",
   "lang": "de",
   "start_url": "./index.html",
   "scope": "./",

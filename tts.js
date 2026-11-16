@@ -1,4 +1,4 @@
-/* Sprachausgabe: Piper-Stimmen vom eigenen Server (POST /tts, je zwei Stimmen für Englisch und Spanisch).
+/* Sprachausgabe: Piper-Stimmen vom eigenen Server (POST /tts, je zwei Stimmen für Englisch, Spanisch und Französisch).
    Wenn der Dienst fehlt, überlastet oder offline ist (oder der Browser das Abspielen blockiert),
    spricht stattdessen die Stimme des Browsers – die App funktioniert also immer.
 
@@ -11,7 +11,7 @@ const Voice = (() => {
   const cache = new Map();          // "lang|stimme|text" -> Promise<Blob|null>
   let queue = [], stopCurrent = null, gen = 0, running = false, downUntil = 0, busy = false;
 
-  const kind = code => /^en/i.test(code) ? 'en' : /^es/i.test(code) ? 'es' : null;
+  const kind = code => /^en/i.test(code) ? 'en' : /^es/i.test(code) ? 'es' : /^fr/i.test(code) ? 'fr' : null;
 
   // ---- ein gemeinsames Audio-Element, das beim ersten Tippen freigeschaltet wird -------------------------------
   const player = new Audio();

@@ -62,6 +62,8 @@ const COURSES = {
   en:{id:'en',flag:'🇬🇧',name:'Business-Englisch',lang:'en-US',auf:'Englisch',ins:'Englische',units:UNITS,prefix:''},
   cloud:{id:'cloud',flag:'☁️',name:'Cloud-Englisch',lang:'en-US',auf:'Englisch',ins:'Englische',units:UNITS_CLOUD,prefix:'cl:'},
   es:{id:'es',flag:'🇪🇸',name:'Spanisch',lang:'es-ES',auf:'Spanisch',ins:'Spanische',units:UNITS_ES,prefix:'es:'},
+  fr:{id:'fr',flag:'🇫🇷',name:'Französisch',lang:'fr-FR',auf:'Französisch',ins:'Französische',units:UNITS_FR,prefix:'fr:',
+      levels:['Neuling','Tourist','Entdecker','Stammgast','Kenner','Profi','Maître']},
   // Darija: Umschrift + arabische Schrift; keine Tipp-/Mikrofon-Übungen (uneinheitliche Schreibweise, keine Spracherkennung)
   ma:{id:'ma',flag:'🇲🇦',name:'Darija',lang:'ar-MA',auf:'Darija',ins:'Darija',units:UNITS_MA,prefix:'ma:',arabic:true,noType:true,
       levels:['Neuling','Tourist','Entdecker','Stammgast','Souk-Profi','Kenner','Marokko-Profi']}

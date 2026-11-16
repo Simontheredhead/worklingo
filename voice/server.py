@@ -1,6 +1,6 @@
 """Sprachdienst für WorkLingo (Piper, läuft auf der CPU).
 
-POST /tts   {"lang": "en" | "es", "voice": 0 | 1, "text": "..."}  ->  WAV-Audio (16 Bit, mono)
+POST /tts   {"lang": "en" | "es" | "fr", "voice": 0 | 1, "text": "..."}  ->  WAV-Audio (16 Bit, mono)
 GET  /health                                                       ->  {"ok": true, ...}
 
 Stimme 0 ist immer weiblich, Stimme 1 immer männlich. Es werden keine Texte protokolliert.
@@ -28,6 +28,7 @@ LENGTH_SCALE = float(os.environ.get("TTS_LENGTH_SCALE", "1.1"))
 VOICES = {
     "en": [("en_US-lessac-high.onnx", None), ("en_US-ryan-high.onnx", None)],
     "es": [("es_ES-sharvard-medium.onnx", 1), ("es_ES-davefx-medium.onnx", None)],   # sharvard: Sprecher 1 = weiblich
+    "fr": [("fr_FR-siwis-medium.onnx", None), ("fr_FR-tom-medium.onnx", None)],
 }
 
 app = FastAPI(title="WorkLingo Stimme", docs_url=None, redoc_url=None, openapi_url=None)
@@ -47,7 +48,7 @@ def model(name: str) -> PiperVoice:
 
 
 class Request(BaseModel):
-    lang: Literal["en", "es"]
+    lang: Literal["en", "es", "fr"]
     voice: int = Field(0, ge=0, le=1)
     text: str = Field(min_length=1, max_length=MAX_CHARS)
 
