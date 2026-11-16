@@ -11,22 +11,26 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Englisch: alba (GB) = weiblich, ryan (US, Qualität high) = männlich. Spanisch (Spanien): sharvard (zwei Sprecher in einem Modell).
-ADD ${BASE}/en/en_GB/alba/medium/en_GB-alba-medium.onnx      /models/
-ADD ${BASE}/en/en_GB/alba/medium/en_GB-alba-medium.onnx.json /models/
+# Englisch (US, Qualität high): lessac = weiblich, ryan = männlich. Spanisch (Spanien): sharvard Sprecherin = weiblich, davefx = männlich.
+ADD ${BASE}/en/en_US/lessac/high/en_US-lessac-high.onnx      /models/
+ADD ${BASE}/en/en_US/lessac/high/en_US-lessac-high.onnx.json /models/
 ADD ${BASE}/en/en_US/ryan/high/en_US-ryan-high.onnx          /models/
 ADD ${BASE}/en/en_US/ryan/high/en_US-ryan-high.onnx.json     /models/
 ADD ${BASE}/es/es_ES/sharvard/medium/es_ES-sharvard-medium.onnx      /models/
 ADD ${BASE}/es/es_ES/sharvard/medium/es_ES-sharvard-medium.onnx.json /models/
+ADD ${BASE}/es/es_ES/davefx/medium/es_ES-davefx-medium.onnx          /models/
+ADD ${BASE}/es/es_ES/davefx/medium/es_ES-davefx-medium.onnx.json     /models/
 
 # Prüfsummen laut voices.json des Repos; der Build bricht ab, wenn eine Datei nicht stimmt.
 RUN cd /models && printf '%s\n' \
-  "b802b4229cf62bb98d53a617dfd8fd4c  en_GB-alba-medium.onnx" \
-  "87dc160c21fa57bb0a70b13a2751d9a7  en_GB-alba-medium.onnx.json" \
+  "99d1f6181a7f5ccbe3f117ba8ce63c93  en_US-lessac-high.onnx" \
+  "02e8e364c86b5d3b75e81704b0369856  en_US-lessac-high.onnx.json" \
   "5d879a17bddf5007f76655b445ba78b4  en_US-ryan-high.onnx" \
   "444ff9d6c17218a0eb1d12a20559d869  en_US-ryan-high.onnx.json" \
   "f1c228def498dbfefe3b946369510748  es_ES-sharvard-medium.onnx" \
   "695ad6a14e8d98dff56a04276ced7b4c  es_ES-sharvard-medium.onnx.json" \
+  "0e0aa6d60c4cf692f86c27ee31801e01  es_ES-davefx-medium.onnx" \
+  "4e342be16f44d8f1bc3625322c0c82af  es_ES-davefx-medium.onnx.json" \
   | md5sum -c - \
   && chmod 644 /models/*
 

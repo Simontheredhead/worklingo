@@ -68,10 +68,10 @@ Der Browser fragt per `POST /tts` (`{"lang":"en"|"es","voice":0|1,"text":"…"}`
 
 | Sprache | Stimme 0 (weiblich) | Stimme 1 (männlich) |
 | --- | --- | --- |
-| Englisch | `en_GB-alba-medium` (britisch) | `en_US-ryan-high` (amerikanisch) |
-| Spanisch (Spanien) | `es_ES-sharvard-medium`, Sprecherin F | `es_ES-sharvard-medium`, Sprecher M |
+| Englisch (US) | `en_US-lessac-high` | `en_US-ryan-high` |
+| Spanisch (Spanien) | `es_ES-sharvard-medium`, Sprecherin | `es_ES-davefx-medium` |
 
-Die männliche englische Stimme läuft in der höchsten Piper-Qualitätsstufe (`high`); `alba` gibt es nur als `medium`. Für Spanisch aus Spanien gibt es ebenfalls nur `medium`; die `high`-Stimmen
+Beide englischen Stimmen laufen in der höchsten Piper-Qualitätsstufe (`high`). Für Spanisch aus Spanien gibt es nur `medium`; die `high`-Stimmen
 (`es_MX-claude-high`, `es_AR-daniela-high`) sind lateinamerikanisch und haben nur einen Sprecher. Alle Modelle geben 22.050 Hz aus.
 
 Stimme 1 spricht den zweiten Sprecher in den Hörverstehen-Dialogen. Die Modelle werden beim Bauen aus einer festen Version von

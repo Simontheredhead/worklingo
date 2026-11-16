@@ -26,8 +26,8 @@ LENGTH_SCALE = float(os.environ.get("TTS_LENGTH_SCALE", "1.1"))
 
 # (Modelldatei, Sprecher-Nummer im Modell oder None)
 VOICES = {
-    "en": [("en_GB-alba-medium.onnx", None), ("en_US-ryan-high.onnx", None)],
-    "es": [("es_ES-sharvard-medium.onnx", 1), ("es_ES-sharvard-medium.onnx", 0)],   # 1 = weiblich, 0 = männlich
+    "en": [("en_US-lessac-high.onnx", None), ("en_US-ryan-high.onnx", None)],
+    "es": [("es_ES-sharvard-medium.onnx", 1), ("es_ES-davefx-medium.onnx", None)],   # sharvard: Sprecher 1 = weiblich
 }
 
 app = FastAPI(title="WorkLingo Stimme", docs_url=None, redoc_url=None, openapi_url=None)
