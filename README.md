@@ -68,15 +68,18 @@ Der Browser fragt per `POST /tts` (`{"lang":"en"|"es","voice":0|1,"text":"…"}`
 
 | Sprache | Stimme 0 (weiblich) | Stimme 1 (männlich) |
 | --- | --- | --- |
-| Englisch (US) | `en_US-lessac-medium` | `en_US-ryan-medium` |
+| Englisch | `en_GB-alba-medium` (britisch) | `en_US-ryan-high` (amerikanisch) |
 | Spanisch (Spanien) | `es_ES-sharvard-medium`, Sprecherin F | `es_ES-sharvard-medium`, Sprecher M |
 
+Die männliche englische Stimme läuft in der höchsten Piper-Qualitätsstufe (`high`); `alba` gibt es nur als `medium`. Für Spanisch aus Spanien gibt es ebenfalls nur `medium`; die `high`-Stimmen
+(`es_MX-claude-high`, `es_AR-daniela-high`) sind lateinamerikanisch und haben nur einen Sprecher. Alle Modelle geben 22.050 Hz aus.
+
 Stimme 1 spricht den zweiten Sprecher in den Hörverstehen-Dialogen. Die Modelle werden beim Bauen aus einer festen Version von
-[rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices) geladen und per MD5 geprüft (Image rund 1,2 GB, im Betrieb etwa 500 MB RAM).
+[rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices) geladen und per MD5 geprüft (Image rund 1,3 GB).
 
 **Fallback:** Ist der Dienst nicht erreichbar, überlastet, offline oder blockiert der Browser das Abspielen, spricht automatisch die Browser-Stimme.
 Deutsch (Übersetzer-Ausgabe) und Texte über 300 Zeichen laufen ebenfalls über den Browser.
 
 **Abgesichert:** Der Dienst hängt nur im internen Docker-Netz `worklingo_intern` (kein Zugang nach außen, kein öffentlicher Port) und ist nur über nginx
 erreichbar. nginx lässt nur `POST /tts` durch (2 KB, 4 Anfragen pro Sekunde und Adresse), der Dienst prüft Sprache, Stimme und Länge, begrenzt gleichzeitige
-Synthesen und protokolliert keine Texte. Container: ohne Root, schreibgeschützt, ohne Capabilities, 1 GB RAM und 1,5 CPU als Grenze.
+Synthesen und protokolliert keine Texte. Container: ohne Root, schreibgeschützt, ohne Capabilities, 1,5 GB RAM und 1,5 CPU als Grenze.

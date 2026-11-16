@@ -26,7 +26,7 @@ LENGTH_SCALE = float(os.environ.get("TTS_LENGTH_SCALE", "1.1"))
 
 # (Modelldatei, Sprecher-Nummer im Modell oder None)
 VOICES = {
-    "en": [("en_US-lessac-medium.onnx", None), ("en_US-ryan-medium.onnx", None)],
+    "en": [("en_GB-alba-medium.onnx", None), ("en_US-ryan-high.onnx", None)],
     "es": [("es_ES-sharvard-medium.onnx", 1), ("es_ES-sharvard-medium.onnx", 0)],   # 1 = weiblich, 0 = männlich
 }
 

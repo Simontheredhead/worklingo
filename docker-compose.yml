@@ -51,8 +51,8 @@ services:
     user: "10001:10001"    # kein Root
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=64m
-    mem_limit: 1g
-    memswap_limit: 1g
+    mem_limit: 1536m       # die beiden High-Modelle für Englisch brauchen zusammen mit Spanisch rund 850 MB
+    memswap_limit: 1536m
     cpus: 1.5              # Synthese darf nie den ganzen Server (und das Spiel) ausbremsen
     pids_limit: 128
     healthcheck:

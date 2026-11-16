@@ -11,20 +11,20 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Englisch (US): lessac = weiblich, ryan = männlich. Spanisch (Spanien): sharvard (zwei Sprecher in einem Modell).
-ADD ${BASE}/en/en_US/lessac/medium/en_US-lessac-medium.onnx      /models/
-ADD ${BASE}/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json /models/
-ADD ${BASE}/en/en_US/ryan/medium/en_US-ryan-medium.onnx          /models/
-ADD ${BASE}/en/en_US/ryan/medium/en_US-ryan-medium.onnx.json     /models/
+# Englisch: alba (GB) = weiblich, ryan (US, Qualität high) = männlich. Spanisch (Spanien): sharvard (zwei Sprecher in einem Modell).
+ADD ${BASE}/en/en_GB/alba/medium/en_GB-alba-medium.onnx      /models/
+ADD ${BASE}/en/en_GB/alba/medium/en_GB-alba-medium.onnx.json /models/
+ADD ${BASE}/en/en_US/ryan/high/en_US-ryan-high.onnx          /models/
+ADD ${BASE}/en/en_US/ryan/high/en_US-ryan-high.onnx.json     /models/
 ADD ${BASE}/es/es_ES/sharvard/medium/es_ES-sharvard-medium.onnx      /models/
 ADD ${BASE}/es/es_ES/sharvard/medium/es_ES-sharvard-medium.onnx.json /models/
 
 # Prüfsummen laut voices.json des Repos; der Build bricht ab, wenn eine Datei nicht stimmt.
 RUN cd /models && printf '%s\n' \
-  "2fc642b535197b6305c7c8f92dc8b24f  en_US-lessac-medium.onnx" \
-  "c1f2b7bddefe113f3255ff9ef234cfd3  en_US-lessac-medium.onnx.json" \
-  "6431a4a167687c60044d9768a47befa3  en_US-ryan-medium.onnx" \
-  "c0699416f4aa54504ce768ffb0a8b96a  en_US-ryan-medium.onnx.json" \
+  "b802b4229cf62bb98d53a617dfd8fd4c  en_GB-alba-medium.onnx" \
+  "87dc160c21fa57bb0a70b13a2751d9a7  en_GB-alba-medium.onnx.json" \
+  "5d879a17bddf5007f76655b445ba78b4  en_US-ryan-high.onnx" \
+  "444ff9d6c17218a0eb1d12a20559d869  en_US-ryan-high.onnx.json" \
   "f1c228def498dbfefe3b946369510748  es_ES-sharvard-medium.onnx" \
   "695ad6a14e8d98dff56a04276ced7b4c  es_ES-sharvard-medium.onnx.json" \
   | md5sum -c - \

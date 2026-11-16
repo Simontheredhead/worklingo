@@ -41,15 +41,19 @@ const Voice = (() => {
     a.play().catch(e => finish(() => rej(e)));
   });
 
+  const warm = () => queue.slice(0, 1).forEach(it => it.load());     // Vorlauf: nur der nächste Satz (der Server rechnet höchstens zwei gleichzeitig)
+
   async function run(){
     if(running) return;
     running = true;
     const mine = gen;
     while(queue.length && mine === gen){
       const it = queue.shift();
+      const loading = it.load();          // holt diesen Satz (falls noch nicht geschehen) ...
+      warm();                             // ... und den nächsten, solange dieser läuft
       let ok = false;
-      if(it.blob){
-        const blob = await it.blob;
+      if(loading){
+        const blob = await loading;
         if(mine !== gen) break;
         if(blob){ try{ await playBlob(blob); ok = true; }catch(e){ /* Browser-Stimme als Ersatz */ } }
       }
@@ -63,9 +67,13 @@ const Voice = (() => {
     text = String(text || '').trim();
     if(!text) return;
     const code = o.lang || 'en-US', lang = kind(code), voice = o.voice ? 1 : 0;
-    const it = {text, code, pitch: o.pitch || 1, blob: null};
-    if(lang && text.length <= MAX_CHARS && Date.now() >= downUntil) it.blob = fetchAudio(lang, voice, text);
+    const it = {text, code, pitch: o.pitch || 1, blob: null,
+      load(){   // Audio erst anfordern, wenn der Satz bald dran ist (der Server rechnet nur wenige Sätze gleichzeitig)
+        if(!it.blob && lang && text.length <= MAX_CHARS && Date.now() >= downUntil) it.blob = fetchAudio(lang, voice, text);
+        return it.blob;
+      }};
     queue.push(it);
+    warm();
     run();
   }
 
