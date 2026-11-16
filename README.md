@@ -77,6 +77,12 @@ Die männliche englische Stimme läuft in der höchsten Piper-Qualitätsstufe (`
 Stimme 1 spricht den zweiten Sprecher in den Hörverstehen-Dialogen. Die Modelle werden beim Bauen aus einer festen Version von
 [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices) geladen und per MD5 geprüft (Image rund 1,3 GB).
 
+**Safari und iPhone:** Safari spielt Ton nur ab, wenn er direkt durch ein Tippen ausgelöst wird. Die Sätze kommen aber erst nach dem Laden vom Server.
+Deshalb nutzt `tts.js` genau ein Audio-Element, das beim ersten Tippen stumm freigeschaltet wird und danach beliebig oft abspielen darf
+(dasselbe gilt für die Browser-Stimme als Ersatz). Die Seite hat dafür die iOS-Angaben (`apple-touch-icon`, Statusleiste, `safe-area`).
+Fortschritt liegt im `localStorage`; Safari löscht ihn bei Webseiten nach etwa 7 Tagen ohne Besuch, außer die App wurde über
+„Teilen → Zum Home-Bildschirm“ installiert.
+
 **Fallback:** Ist der Dienst nicht erreichbar, überlastet, offline oder blockiert der Browser das Abspielen, spricht automatisch die Browser-Stimme.
 Deutsch (Übersetzer-Ausgabe) und Texte über 300 Zeichen laufen ebenfalls über den Browser.
 
