@@ -13,11 +13,8 @@ const DAILY_GOAL = 40;
 const LEVELS = [[0,'Newcomer'],[60,'Trainee'],[150,'Associate'],[300,'Specialist'],[500,'Senior'],[750,'Expert'],[1000,'English Pro']];
 const levelOf = xp => { let i=0; LEVELS.forEach((l,k)=>{ if(xp>=l[0]) i=k; }); return i; };
 
-function speak(t, pitch=1){
-  if(!('speechSynthesis' in window)) return;
-  const u = new SpeechSynthesisUtterance(t); u.lang=C.lang; u.rate=.9; u.pitch=pitch; speechSynthesis.speak(u);
-}
-function speakNow(t){ if('speechSynthesis' in window) speechSynthesis.cancel(); speak(t); }
+function speak(t, pitch=1){ Voice.say(t, {lang:C.lang, voice:pitch>1?1:0, pitch}); }   // pitch>1 = zweiter Sprecher (Stimme 1)
+function speakNow(t){ Voice.cancel(); speak(t); }
 
 /* ============ Soundeffekte (per WebAudio erzeugt, keine Dateien nötig) ============ */
 let AC = null;
@@ -160,7 +157,7 @@ function buildTraining(){
 /* ============ Lektion ============ */
 let L = null, cur = null, answered = false;
 function begin(spec){
-  speechSynthesis && speechSynthesis.cancel();
+  Voice.cancel();
   const list = spec.list();
   L = {spec, queue:[...list], total:list.filter(e=>e.type!=='tip').length, correct:0, hearts:spec.hearts, wrong:0, endAction:null};
   $('#home').classList.add('hidden'); $('#lesson').classList.remove('hidden');
@@ -225,7 +222,7 @@ const RENDER = {
       <button class="link" id="showtxt">Text anzeigen</button>
       <div id="dlg" class="dlg hidden">${ex.lines.map(l=>`<p><b>${esc(l[0])}:</b> ${esc(l[1])}</p>`).join('')}</div>
       <h2 class="q">${esc(ex.q)}</h2>${optsHtml(ex)}`;
-    const play = () => { speechSynthesis.cancel(); const names=[...new Set(ex.lines.map(l=>l[0]))]; ex.lines.forEach(l=>speak(l[1], names.indexOf(l[0])%2?1.35:0.9)); };
+    const play = () => { Voice.cancel(); const names=[...new Set(ex.lines.map(l=>l[0]))]; ex.lines.forEach(l=>speak(l[1], names.indexOf(l[0])%2?1.35:0.9)); };
     $('#spk').onclick = play;
     $('#showtxt').onclick = () => { $('#dlg').classList.toggle('hidden'); };
     play();
@@ -363,7 +360,7 @@ document.addEventListener('keydown', e=>{
   if(e.key==='Enter' && L && !$('#lesson').classList.contains('hidden') && !$('#main').disabled && e.target.id!=='main'){ e.preventDefault(); $('#main').click(); }
 });
 $('#quit').onclick = () => { if(confirm('Lektion beenden? Dein Fortschritt in dieser Lektion geht verloren.')) closeLesson(); };
-function closeLesson(){ speechSynthesis && speechSynthesis.cancel(); L=null; cur=null; $('#lesson').classList.add('hidden'); $('#home').classList.remove('hidden'); save(); renderHome(); window.scrollTo(0,0); }
+function closeLesson(){ Voice.cancel(); L=null; cur=null; $('#lesson').classList.add('hidden'); $('#home').classList.remove('hidden'); save(); renderHome(); window.scrollTo(0,0); }
 
 function fail(){
   sfx('lose');

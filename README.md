@@ -30,6 +30,7 @@ Die App ist als PWA installierbar (nur über HTTPS bzw. localhost).
 | `content-cloud.js` | Kurs Cloud-Englisch |
 | `content-es.js` | Kurs Spanisch |
 | `sw.js`, `sw-register.js`, `manifest.webmanifest`, `icon*` | Offline-Cache und Installation (PWA) |
+| `tts.js`, `voice/` | Sprachausgabe mit Piper-Stimmen (siehe unten) |
 | `Dockerfile`, `docker-compose.yml`, `docker/`, `deploy/` | Betrieb auf dem Server (siehe unten) |
 
 Neue Lektionen: einen Block im jeweiligen `content-*.js` ergänzen (Format steht am Dateianfang von `content.js`).
@@ -39,7 +40,7 @@ Der Fortschritt liegt nur im Browser (`localStorage`). Der Übersetzer sendet de
 [MyMemory](https://mymemory.translated.net); die Spracherkennung läuft über den Dienst des Browsers.
 
 ## Betrieb auf dem Server (Docker)
-Das Image besteht aus nginx ohne Root-Rechte und liefert nur die statischen Dateien aus (rund 82 MB, im Betrieb etwa 5 MB RAM).
+Es laufen zwei Container: nginx ohne Root-Rechte (liefert die statischen Dateien aus, rund 82 MB Image, etwa 5 MB RAM) und die Sprachausgabe `worklingo-voice` (siehe unten).
 
 **Gehärtet:** Benutzer `nginx` (UID 101), schreibgeschütztes Dateisystem, alle Linux-Capabilities entfernt,
 `no-new-privileges`, Grenzen für RAM (64 MB), CPU und Prozesse, nur GET/HEAD erlaubt, Anfragen pro Adresse begrenzt,
@@ -60,3 +61,22 @@ docker compose logs -f           # Logs
 
 Der Container hängt im Docker-Netz `geisterstunde_default` (änderbar über `PROXY_NETWORK`), damit der Caddy ihn als `worklingo:8080` erreicht.
 Das Mikrofon und die Installation als App funktionieren nur über HTTPS.
+
+## Sprachausgabe (Piper)
+Vorgelesen wird mit [Piper](https://github.com/OHF-Voice/piper1-gpl) (offline, CPU) statt mit der Stimme des Browsers, damit es auf jedem Gerät gleich klingt.
+Der Browser fragt per `POST /tts` (`{"lang":"en"|"es","voice":0|1,"text":"…"}`) und bekommt WAV-Audio zurück.
+
+| Sprache | Stimme 0 (weiblich) | Stimme 1 (männlich) |
+| --- | --- | --- |
+| Englisch (US) | `en_US-lessac-medium` | `en_US-ryan-medium` |
+| Spanisch (Spanien) | `es_ES-sharvard-medium`, Sprecherin F | `es_ES-sharvard-medium`, Sprecher M |
+
+Stimme 1 spricht den zweiten Sprecher in den Hörverstehen-Dialogen. Die Modelle werden beim Bauen aus einer festen Version von
+[rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices) geladen und per MD5 geprüft (Image rund 1,2 GB, im Betrieb etwa 500 MB RAM).
+
+**Fallback:** Ist der Dienst nicht erreichbar, überlastet, offline oder blockiert der Browser das Abspielen, spricht automatisch die Browser-Stimme.
+Deutsch (Übersetzer-Ausgabe) und Texte über 300 Zeichen laufen ebenfalls über den Browser.
+
+**Abgesichert:** Der Dienst hängt nur im internen Docker-Netz `worklingo_intern` (kein Zugang nach außen, kein öffentlicher Port) und ist nur über nginx
+erreichbar. nginx lässt nur `POST /tts` durch (2 KB, 4 Anfragen pro Sekunde und Adresse), der Dienst prüft Sprache, Stimme und Länge, begrenzt gleichzeitige
+Synthesen und protokolliert keine Texte. Container: ohne Root, schreibgeschützt, ohne Capabilities, 1 GB RAM und 1,5 CPU als Grenze.

@@ -48,8 +48,7 @@ async function translate(text, src, dst){
 }
 
 function speakText(t, lang){
-  if(!('speechSynthesis' in window)) return;
-  speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(t); u.lang=LANGS[lang].code; u.rate=.9; speechSynthesis.speak(u);
+  Voice.cancel(); Voice.say(t, {lang:LANGS[lang].code});
 }
 function loadHist(){ try{ return JSON.parse(localStorage.getItem(HK))||[]; }catch(e){ return []; } }
 function saveHist(h){ try{ localStorage.setItem(HK, JSON.stringify(h.slice(0,8))); }catch(e){} }
@@ -96,6 +95,6 @@ q('#tclear').onclick = () => { q('#tin').value=''; q('#tres').classList.add('hid
 q('#tin').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); go(); } });
 q('#tsrc').onchange = q('#tdst').onchange = () => status('');
 q('#openTrans').onclick = () => { q('#home').classList.add('hidden'); q('#trans').classList.remove('hidden'); drawHist(); };
-q('#tclose').onclick = () => { if(recog){ try{recog.stop();}catch(e){} } speechSynthesis && speechSynthesis.cancel(); q('#trans').classList.add('hidden'); q('#home').classList.remove('hidden'); };
+q('#tclose').onclick = () => { if(recog){ try{recog.stop();}catch(e){} } Voice.cancel(); q('#trans').classList.add('hidden'); q('#home').classList.remove('hidden'); };
 window.__translate = translate; window.__lookup = lookup;
 })();

@@ -1,50 +1,74 @@
 # WorkLingo auf dem Server. Es gibt keinen öffentlichen Port: Der Caddy des Geisterstunde-Stacks
 # nimmt HTTPS an und reicht die Anfragen an "worklingo:8080" weiter (siehe deploy/Caddyfile.worklingo).
+# Die Sprachausgabe (Piper) läuft im Container "worklingo-voice" und ist nur für nginx erreichbar.
 # Start:  docker compose up -d --build
+x-haertung: &haertung
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: "5m"
+      max-file: "3"
+
 services:
   worklingo:
+    <<: *haertung
     build: .
     image: worklingo:latest
     container_name: worklingo
-    restart: unless-stopped
-
-    # Härtung: kein Root, keine Rechte, unveränderliches Dateisystem
-    user: "101:101"
-    read_only: true
+    user: "101:101"        # kein Root
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=16m
-    cap_drop: [ALL]
-    security_opt:
-      - no-new-privileges:true
-
-    # Stabilität: harte Grenzen, damit der Container den Server nie ausbremsen kann
     mem_limit: 64m
     memswap_limit: 64m
     cpus: 0.25
     pids_limit: 64
     ulimits:
       nofile: { soft: 1024, hard: 1024 }
-
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/healthz"]
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 5s
-
-    # Logs begrenzen, damit die Platte nicht vollläuft
-    logging:
-      driver: json-file
-      options:
-        max-size: "5m"
-        max-file: "3"
-
-    # Gleiches Docker-Netz wie der Caddy; Alias "worklingo" ist der Name für den Proxy.
+    depends_on:
+      - worklingo-voice
     networks:
+      # Gleiches Docker-Netz wie der Caddy (Alias "worklingo") und das interne Netz zur Stimme.
       proxy:
         aliases: [worklingo]
+      intern: {}
+
+  worklingo-voice:
+    <<: *haertung
+    build: ./voice
+    image: worklingo-voice:latest
+    container_name: worklingo-voice
+    user: "10001:10001"    # kein Root
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
+    mem_limit: 1g
+    memswap_limit: 1g
+    cpus: 1.5              # Synthese darf nie den ganzen Server (und das Spiel) ausbremsen
+    pids_limit: 128
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      intern:
+        aliases: [worklingo-voice]
 
 networks:
   proxy:
     name: ${PROXY_NETWORK:-geisterstunde_default}
     external: true
+  intern:
+    name: worklingo_intern
+    internal: true         # kein Zugang nach außen; von außen ist der Sprachdienst nicht erreichbar
