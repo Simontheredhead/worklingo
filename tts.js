@@ -61,9 +61,23 @@ const Voice = (() => {
     return p;
   }
 
+  // Passende Browser-Stimme suchen: undefined = Stimmenliste noch nicht geladen, null = keine passende vorhanden.
+  const voiceFor = code => {
+    try{
+      const vs = speechSynthesis.getVoices();
+      if(!vs.length) return undefined;
+      const fix = s => String(s).toLowerCase().replace('_', '-'), c = fix(code), p = c.slice(0, 2);
+      return vs.find(v => fix(v.lang) === c) || vs.find(v => fix(v.lang).startsWith(p)) || null;
+    }catch(e){ return undefined; }
+  };
+  const isArabic = code => /^ar/i.test(code);
+
   const browserSpeak = it => new Promise(res => {
     if(!('speechSynthesis' in window)) return res();
+    const v = isArabic(it.code) ? voiceFor(it.code) : undefined;
+    if(v === null) return res();        // Arabisch ohne arabische Stimme: lieber still als mit einer falschen Stimme
     const u = new SpeechSynthesisUtterance(it.text);
+    if(v) u.voice = v;
     u.lang = it.code; u.rate = .9; u.pitch = it.pitch;
     u.onend = u.onerror = () => res();
     speechSynthesis.speak(u);
@@ -129,5 +143,12 @@ const Voice = (() => {
     if('speechSynthesis' in window) speechSynthesis.cancel();
   }
 
-  return {say, cancel};
+  // Kann dieses Gerät die Sprache sprechen? (Englisch/Spanisch immer, Arabisch nur mit arabischer Browser-Stimme)
+  function canSpeak(code){
+    if(!isArabic(code)) return true;
+    if(!('speechSynthesis' in window)) return false;
+    return voiceFor(code) !== null;
+  }
+
+  return {say, cancel, canSpeak};
 })();

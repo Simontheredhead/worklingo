@@ -6,6 +6,7 @@ Sprachlern-App im Duolingo-Stil (Deutsch als Ausgangssprache), als reine statisc
 - **Business-Englisch** (B1–C1): Meetings, E-Mails, Telefonieren, Verhandlungen, Finanzen & Recht u. v. m.
 - **Cloud-Englisch** (B2–C1): Stand-ups, Incidents, CI/CD, Security, Kundenkommunikation, Doku lesen
 - **Spanisch** (A1–A2): Alltag, Essen, Reisen, Arbeit, Vergangenheit und Zukunft
+- **Darija** (A1, Marokko): Begrüßen und Vorstellen, Zahlen und Dirham, Souk und Feilschen, Café und Restaurant, Taxi, Unterkunft und Notfall (12 Lektionen, Umschrift plus arabische Schrift)
 
 Übungstypen: Multiple Choice, Lückentext, Satzbau, Paare, Tippen, Fehlerkorrektur, Hörverstehen, Aussprache (Mikrofon).
 Dazu: XP, Streak, Herzen, Kapitel-Tests, Trainingsmodus, Soundeffekte und ein **Übersetzer mit Spracheingabe** (Deutsch ⇄ Englisch ⇄ Spanisch).
@@ -29,6 +30,7 @@ Die App ist als PWA installierbar (nur über HTTPS bzw. localhost).
 | `content.js`, `content-more.js` | Kurs Business-Englisch |
 | `content-cloud.js` | Kurs Cloud-Englisch |
 | `content-es.js` | Kurs Spanisch |
+| `content-ma.js` | Kurs Darija (marokkanisches Arabisch) |
 | `sw.js`, `sw-register.js`, `manifest.webmanifest`, `icon*` | Offline-Cache und Installation (PWA) |
 | `tts.js`, `voice/` | Sprachausgabe mit Piper-Stimmen (siehe unten) |
 | `Dockerfile`, `docker-compose.yml`, `docker/`, `deploy/` | Betrieb auf dem Server (siehe unten) |
@@ -89,3 +91,12 @@ Deutsch (Übersetzer-Ausgabe) und Texte über 300 Zeichen laufen ebenfalls über
 **Abgesichert:** Der Dienst hängt nur im internen Docker-Netz `worklingo_intern` (kein Zugang nach außen, kein öffentlicher Port) und ist nur über nginx
 erreichbar. nginx lässt nur `POST /tts` durch (2 KB, 4 Anfragen pro Sekunde und Adresse), der Dienst prüft Sprache, Stimme und Länge, begrenzt gleichzeitige
 Synthesen und protokolliert keine Texte. Container: ohne Root, schreibgeschützt, ohne Capabilities, 1,5 GB RAM und 1,5 CPU als Grenze.
+
+## Darija-Kurs
+Der Kurs „Darija“ ist für den Alltag in Marokko gedacht (Anfänger, Deutsch als Ausgangssprache). Jede Lektion hat Wörter, Sätze, Lückentexte, Fehlerkorrektur und einen Dialog,
+alles mit **Umschrift** (Lautschrift für Deutsche) und **arabischer Schrift**. Zur Umschrift: `3` = ع, `7` = ح, `9` = ق, `kh` = خ, `gh` = غ, `sch` = ش.
+Darija wird nicht einheitlich geschrieben, deshalb gibt es hier **keine Tipp-Übungen** und **keine Mikrofon-Übungen** (es gibt keine verlässliche Spracherkennung für Darija).
+
+**Ton:** Es gibt keine Piper-Stimme für Darija. Gesprochen wird der arabische Text mit der arabischen Stimme des Geräts (`ar-MA`, ersatzweise `ar-SA`), das ist Hocharabisch-nah und
+klingt nicht wie ein Marokkaner. Hat ein Gerät keine arabische Stimme, entfallen die Hörübungen (Lautsprecher-Knöpfe fehlen, Dialoge sind zum Lesen), die Schrift bleibt.
+Neue Lektionen: Block in `content-ma.js` ergänzen (Format steht am Dateianfang).

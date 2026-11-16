@@ -12,8 +12,10 @@ const dayKey = d => d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();
 const DAILY_GOAL = 40;
 const LEVELS = [[0,'Newcomer'],[60,'Trainee'],[150,'Associate'],[300,'Specialist'],[500,'Senior'],[750,'Expert'],[1000,'English Pro']];
 const levelOf = xp => { let i=0; LEVELS.forEach((l,k)=>{ if(xp>=l[0]) i=k; }); return i; };
+const lvName = i => (C && C.levels) ? C.levels[i] : LEVELS[i][1];
 
-function speak(t, pitch=1){ Voice.say(t, {lang:C.lang, voice:pitch>1?1:0, pitch}); }   // pitch>1 = zweiter Sprecher (Stimme 1)
+function speak(t, pitch=1){ Voice.say(C.arabic ? (AR.get(t)||t) : t, {lang:C.lang, voice:pitch>1?1:0, pitch}); }   // pitch>1 = zweiter Sprecher (Stimme 1)
+const canAudio = () => !(C && C.arabic) || Voice.canSpeak(C.lang);   // Arabisch braucht eine arabische Stimme auf dem Gerät
 function speakNow(t){ Voice.cancel(); speak(t); }
 
 /* ============ Soundeffekte (per WebAudio erzeugt, keine Dateien nötig) ============ */
@@ -59,13 +61,22 @@ const pick = (pool, correct, n=3) => shuffle([correct, ...shuffle([...new Set(po
 const COURSES = {
   en:{id:'en',flag:'🇬🇧',name:'Business-Englisch',lang:'en-US',auf:'Englisch',ins:'Englische',units:UNITS,prefix:''},
   cloud:{id:'cloud',flag:'☁️',name:'Cloud-Englisch',lang:'en-US',auf:'Englisch',ins:'Englische',units:UNITS_CLOUD,prefix:'cl:'},
-  es:{id:'es',flag:'🇪🇸',name:'Spanisch',lang:'es-ES',auf:'Spanisch',ins:'Spanische',units:UNITS_ES,prefix:'es:'}
+  es:{id:'es',flag:'🇪🇸',name:'Spanisch',lang:'es-ES',auf:'Spanisch',ins:'Spanische',units:UNITS_ES,prefix:'es:'},
+  // Darija: Umschrift + arabische Schrift; keine Tipp-/Mikrofon-Übungen (uneinheitliche Schreibweise, keine Spracherkennung)
+  ma:{id:'ma',flag:'🇲🇦',name:'Darija',lang:'ar-MA',auf:'Darija',ins:'Darija',units:UNITS_MA,prefix:'ma:',arabic:true,noType:true,
+      levels:['Neuling','Tourist','Entdecker','Stammgast','Souk-Profi','Kenner','Marokko-Profi']}
 };
-let C, CU, ALL_EN, ALL_DE, NODES;
+let C, CU, ALL_EN, ALL_DE, NODES, AR = new Map();   // AR: Umschrift -> arabische Schrift (nur Darija)
 function setCourse(id){
   C = COURSES[id] || COURSES.en; CU = C.units; S.course = C.id;
   ALL_EN = CU.flatMap(u=>u.lessons.flatMap(l=>l.w.map(w=>w[0])));
   ALL_DE = CU.flatMap(u=>u.lessons.flatMap(l=>l.w.map(w=>w[1])));
+  AR = new Map();
+  if(C.arabic) CU.forEach(u=>u.lessons.forEach(l=>{
+    l.w.forEach(w=>{ if(w[2]) AR.set(w[0],w[2]); });
+    l.s.forEach(s=>{ if(s[3]) AR.set(s[0],s[3]); });
+    l.d.l.forEach(x=>{ if(x[2]) AR.set(x[1],x[2]); });
+  }));
   NODES = [];
   CU.forEach((u,ui)=>{ u.lessons.forEach((l,li)=>NODES.push({key:C.prefix+ui+'-'+li,ui,li,type:'lesson'})); NODES.push({key:C.prefix+ui+'-b',ui,type:'boss'}); });
 }
@@ -82,7 +93,7 @@ function renderHome(){
   const doneN = NODES.filter(n=>S.done[n.key]).length;
   let html = `<div class="ctabs">${Object.values(COURSES).map(c=>`<button class="ctab ${c.id===C.id?'on':''}" data-c="${c.id}">${c.flag} ${c.name}</button>`).join('')}</div>
     <div class="summary">
-      <div class="srow"><div><div class="lvl">${LEVELS[li][1]}</div><div class="mute">${next?`${S.xp} / ${next[0]} XP bis „${next[1]}“`:`${S.xp} XP · Höchste Stufe erreicht 🎓`}</div></div>
+      <div class="srow"><div><div class="lvl">${lvName(li)}</div><div class="mute">${next?`${S.xp} / ${next[0]} XP bis „${lvName(li+1)}“`:`${S.xp} XP · Höchste Stufe erreicht 🎓`}</div></div>
         <div class="stats"><div title="Tage in Folge">🔥 ${streak}</div><div title="XP">⚡ ${S.xp}</div></div></div>
       <div class="meter"><i style="width:${pct}%"></i></div>
       <div class="srow small"><span>🎯 Tagesziel: ${Math.min(tx,DAILY_GOAL)}/${DAILY_GOAL} XP ${tx>=DAILY_GOAL?'✅':''}</span><span>📚 ${learned} Wörter gelernt · ${doneN}/${NODES.length} Stationen</span></div>
@@ -105,7 +116,7 @@ function renderHome(){
 }
 $('#units').addEventListener('click', e=>{
   const ct = e.target.closest('.ctab'); if(ct){ setCourse(ct.dataset.c); save(); renderHome(); return; }
-  if(e.target.id==='reset'){ if(confirm('Wirklich alles zurücksetzen (beide Kurse)?')){ S=fresh(); setCourse('en'); save(); renderHome(); } return; }
+  if(e.target.id==='reset'){ if(confirm('Wirklich alles zurücksetzen (alle Kurse)?')){ S=fresh(); setCourse('en'); save(); renderHome(); } return; }
   if(e.target.id==='train'){ if(!e.target.disabled) begin({title:'Training',list:buildTraining,hearts:5,xp:h=>8+h,key:null}); return; }
   const b = e.target.closest('.node'); if(!b || b.disabled) return;
   const n = NODES.find(x=>x.key===b.dataset.k);
@@ -115,7 +126,7 @@ $('#units').addEventListener('click', e=>{
 
 /* ============ Übungen erzeugen ============ */
 const MK = {
-  enDe:(w,pool)=>({type:'choice',q:`Was bedeutet „${w[0]}“?`,say:w[0],opts:pick((pool?pool.map(x=>x[1]):[]).concat(shuffle(ALL_DE).slice(0,3)),w[1],3),ans:w[1],wk:w[0]}),
+  enDe:(w,pool)=>({type:'choice',q:`Was bedeutet „${w[0]}“?`,say:w[0],ar:C.arabic?(w[2]||AR.get(w[0])):null,opts:pick((pool?pool.map(x=>x[1]):[]).concat(shuffle(ALL_DE).slice(0,3)),w[1],3),ans:w[1],wk:w[0]}),
   deEn:(w,pool)=>({type:'choice',q:`Wie sagt man „${w[1]}“ auf ${C.auf}?`,opts:pick((pool?pool.map(x=>x[0]):[]).concat(shuffle(ALL_EN).slice(0,3)),w[0],3),ans:w[0],wk:w[0]}),
   hear:(w,pool)=>({type:'choice',q:'Was hörst du?',hear:w[0],opts:pick((pool?pool.map(x=>x[0]):[]).concat(shuffle(ALL_EN).slice(0,3)),w[0],3),ans:w[0],wk:w[0]}),
   typeW:w=>({type:'type',q:`Schreibe auf ${C.auf}`,prompt:w[1],ans:w[0],word:true,wk:w[0],hint:`${w[0].length} Zeichen · beginnt mit „${w[0][0]}“`}),
@@ -129,6 +140,16 @@ const MK = {
 };
 function buildLesson(l){
   const W=l.w, T=l.s, G=l.g, F=l.f;
+  if(C.noType){
+    const au = canAudio();             // ohne passende Stimme: Hörübungen durch Leseübungen ersetzen
+    return [
+      {type:'tip',title:l.t,text:l.tip},
+      MK.enDe(W[0],W), MK.deEn(W[1],W), MK.match(shuffle(W).slice(0,5)),
+      MK.bank(T[0],false), MK.gap(G[0]), MK.bank(T[1],au), au?MK.hear(W[2],W):MK.enDe(W[2],W),
+      MK.fix(F[0]), MK.bank(T[2],false), MK.gap(G[1]), MK.dialog(l.d),
+      MK.deEn(W[3],W), MK.fix(F[1]), MK.gap(G[2]), MK.bank(T[0],au), MK.enDe(W[4],W), MK.deEn(W[5],W)
+    ];
+  }
   return [
     {type:'tip',title:l.t,text:l.tip},
     MK.enDe(W[0],W), MK.deEn(W[1],W), MK.match(shuffle(W).slice(0,5)),
@@ -140,6 +161,14 @@ function buildLesson(l){
 function buildBoss(u){
   const L = u.lessons, all = k => L.flatMap(l=>l[k]);
   const W = all('w'), T = all('s'), G = all('g'), F = all('f');
+  if(C.noType){
+    const au = canAudio();
+    return shuffle([
+      ...shuffle(T).slice(0,2).map(s=>MK.bank(s,false)), ...shuffle(W).slice(0,3).map(w=>MK.deEn(w,W)),
+      ...shuffle(F).slice(0,2).map(MK.fix), ...shuffle(G).slice(0,2).map(MK.gap),
+      MK.dialog(pickOf(L).d), MK.bank(pickOf(T),au), MK.match(shuffle(W).slice(0,5)), MK.enDe(pickOf(W),W)
+    ]);
+  }
   const list = [
     ...shuffle(T).slice(0,2).map(MK.typeS), ...shuffle(W).slice(0,3).map(MK.typeW),
     ...shuffle(F).slice(0,2).map(MK.fix), ...shuffle(G).slice(0,2).map(MK.gap),
@@ -150,7 +179,7 @@ function buildBoss(u){
 function buildTraining(){
   const ws = learnedWords().map(w=>{ const v=S.vocab[w[0]]||{ok:0,bad:0}; return {w,score:v.bad*2-v.ok+Math.random()*3}; })
     .sort((a,b)=>b.score-a.score).slice(0,10).map(x=>x.w);
-  const kinds = ['typeW','enDe','deEn','hear','typeW'];
+  const kinds = C.noType ? ['enDe','deEn',canAudio()?'hear':'enDe','deEn','enDe'] : ['typeW','enDe','deEn','hear','typeW'];
   return shuffle(ws).map((w,i)=>MK[kinds[i%kinds.length]](w));
 }
 
@@ -196,11 +225,12 @@ const RENDER = {
     setMain('Los geht\'s','blue',true);
   },
   choice(ex){
+    const au = canAudio();
     $('#stage').innerHTML = `<h1>${esc(ex.q)}</h1>
-      ${(ex.say||ex.hear)?`<div class="say"><button class="spk" id="spk" aria-label="Anhören">🔊</button>${ex.say?`<div class="bubble">${esc(ex.say)}</div>`:''}</div>`:''}
+      ${(ex.say||ex.hear)?`<div class="say">${au?'<button class="spk" id="spk" aria-label="Anhören">🔊</button>':''}${ex.say?`<div class="bubble">${esc(ex.say)}${ex.ar?`<div class="ar" dir="rtl" lang="ar">${esc(ex.ar)}</div>`:''}</div>`:''}</div>`:''}
       ${optsHtml(ex)}`;
     const t = ex.say||ex.hear;
-    if(t){ $('#spk').onclick=()=>speakNow(t); if(ex.hear) speakNow(t); }
+    if(t && au){ $('#spk').onclick=()=>speakNow(t); if(ex.hear) speakNow(t); }
     let sel=null; renderOptions(ex, v=>sel=v);
     ex.check = () => { checkOptions(ex, sel); return {ok:sel===ex.ans, answer:ex.ans}; };
   },
@@ -217,15 +247,14 @@ const RENDER = {
     ex.check = () => { checkOptions(ex, sel); return {ok:sel===ex.ans, answer:ex.ans, why:ex.why}; };
   },
   dialog(ex){
-    $('#stage').innerHTML = `<h1>Hörverstehen</h1>
-      <div class="say"><button class="spk" id="spk">▶</button><div class="hint" style="margin:0">Dialog anhören (so oft du willst)</div></div>
-      <button class="link" id="showtxt">Text anzeigen</button>
-      <div id="dlg" class="dlg hidden">${ex.lines.map(l=>`<p><b>${esc(l[0])}:</b> ${esc(l[1])}</p>`).join('')}</div>
+    const au = canAudio();
+    $('#stage').innerHTML = `<h1>${au?'Hörverstehen':'Dialog lesen'}</h1>
+      ${au?`<div class="say"><button class="spk" id="spk">▶</button><div class="hint" style="margin:0">Dialog anhören (so oft du willst)</div></div>
+      <button class="link" id="showtxt">Text anzeigen</button>`:`<div class="hint">Auf diesem Gerät gibt es keine arabische Stimme. Lies den Dialog:</div>`}
+      <div id="dlg" class="dlg ${au?'hidden':''}">${ex.lines.map(l=>`<p><b>${esc(l[0])}:</b> ${esc(l[1])}${l[2]?`<span class="ar" dir="rtl" lang="ar">${esc(l[2])}</span>`:''}</p>`).join('')}</div>
       <h2 class="q">${esc(ex.q)}</h2>${optsHtml(ex)}`;
     const play = () => { Voice.cancel(); const names=[...new Set(ex.lines.map(l=>l[0]))]; ex.lines.forEach(l=>speak(l[1], names.indexOf(l[0])%2?1.35:0.9)); };
-    $('#spk').onclick = play;
-    $('#showtxt').onclick = () => { $('#dlg').classList.toggle('hidden'); };
-    play();
+    if(au){ $('#spk').onclick = play; $('#showtxt').onclick = () => { $('#dlg').classList.toggle('hidden'); }; play(); }
     let sel=null; renderOptions(ex, v=>sel=v);
     ex.check = () => { checkOptions(ex, sel); $('#dlg').classList.remove('hidden'); return {ok:sel===ex.ans, answer:ex.ans}; };
   },
@@ -384,7 +413,7 @@ function finish(){
   const lv = levelOf(S.xp), up = lv > levelOf(S.xp-xp);
   $('#prog').style.width='100%'; $('#stage').onclick = null;
   $('#stage').innerHTML = `<div class="end"><div class="big">${L.spec.key&&L.spec.key.endsWith('b')?'🏆':'🎉'}</div><h1>${esc(L.spec.title)} geschafft!</h1>
-    ${up?`<p class="levelup">🆙 Neue Stufe: ${LEVELS[lv][1]}</p>`:''}
+    ${up?`<p class="levelup">🆙 Neue Stufe: ${lvName(lv)}</p>`:''}
     <div class="cards"><div class="card"><b>XP</b><div>⚡ ${xp}</div></div><div class="card" style="border-color:var(--green)"><b style="background:var(--green)">Genauigkeit</b><div>${acc}%</div></div>
     <div class="card" style="border-color:var(--red)"><b style="background:var(--red)">Herzen</b><div>❤️ ${L.hearts}</div></div></div>
     <p class="hint">🔥 ${S.streak} ${S.streak===1?'Tag':'Tage'} in Folge</p></div>`;
